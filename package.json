@@ -1,0 +1,12 @@
+{
+  "name": "meebo",
+  "version": "1.0.0",
+  "description": "the missing api contract validation for express js",
+  "license": "ISC",
+  "author": "Michael Medvedev",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
