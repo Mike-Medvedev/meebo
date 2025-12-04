@@ -1,6 +1,7 @@
 import express, { json } from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { z } from "zod";
+import { typedHandler } from "./types.js";
 
 const UserRequestSchema = z.object({
   id: z.number(),
@@ -22,24 +23,22 @@ const router = express.Router();
 
 app.use("/api", router);
 
-const getUsers: RequestHandler<
-  {}, // Route params (P)
-  z.infer<typeof UsersSchema>, // Response body
-  z.infer<typeof UserRequestSchema>, // Request body
-  {}
-> = (req, res, next) => {
-  const b = req.body; // Now typed as z.infer<typeof UserRequestSchema>
+const getUsers = typedHandler(
+  { request: UserRequestSchema, response: UsersSchema },
+  (req, res, next) => {
+    const b = req.body; // types as UserRequestSchema { id: string }
 
-  res.json({
-    users: [
-      {
-        id: 1,
-        firstname: "mike",
-        lastname: "medvedev",
-      },
-    ],
-  }); // Response is typed as z.infer<typeof UsersSchema>
-};
+    res.json({
+      users: [
+        {
+          id: 1,
+          firstname: "mike",
+          lastname: "medvedev",
+        },
+      ],
+    }); // Typed as UsersSchema { users: User[] }
+  },
+);
 
 router.get("/users", { request: UserRequestSchema, response: UsersSchema }, getUsers);
 

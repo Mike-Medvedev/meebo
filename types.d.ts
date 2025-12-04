@@ -1,4 +1,5 @@
 import "express-serve-static-core";
+import { RequestHandler } from "express-serve-static-core";
 import { z } from "zod";
 
 interface RouteSchema<TRequest extends z.ZodType, TResponse extends z.ZodType> {
@@ -6,17 +7,17 @@ interface RouteSchema<TRequest extends z.ZodType, TResponse extends z.ZodType> {
   response: TResponse;
 }
 
-export type TypedRequestHandler<
-  TRequest extends z.ZodType, // ← Accepts the Zod schema TYPE
-  TResponse extends z.ZodType, // ← Accepts the Zod schema TYPE
-  Route extends string = string,
-> = RequestHandler<
-  RouteParameters<Route>,
-  z.infer<TResponse>, // ← Does the inference for you
-  z.infer<TRequest>,
-  ParsedQs,
-  Record<string, any>
->;
+function typedHandler<
+  TRequest extends z.ZodType,
+  TResponse extends z.ZodType,
+  ReqBody = z.infer<TRequest>,
+  ResBody = z.infer<TResponse>,
+>(
+  schemas: RouteSchema<TRequest, TResponse>,
+  handler: RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>,
+) {
+  return handler;
+}
 
 declare module "express-serve-static-core" {
   interface IRouterMatcher<
