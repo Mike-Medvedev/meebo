@@ -1,13 +1,9 @@
-The missing API contract validation for Express JS (inspired by FastAPI)
-
 # Meebo - Type-Safe Express Router with Runtime Validation
 
-> The missing API contract validation for Express.js (inspired by FastAPI)
+> The missing API contract validation for Express.js
 
 [![npm version](https://badge.fury.io/js/meebo.svg)](https://badge.fury.io/js/meebo)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue)](https://www.typescriptlang.org/)
-
-**Add compile-time type safety and runtime validation to your Express routes with zero boilerplate.**
 
 ## 🎯 The Problem
 
@@ -18,8 +14,6 @@ Express routes have **no type safety** and **no runtime validation**:
 const router = express.Router();
 
 router.post("/users", (req, res) => {
-  // req.body is `any` - no type safety!
-  // No validation - invalid data crashes your app
   const user = req.body; // Could be anything!
   res.json({ success: true });
 });
@@ -196,12 +190,6 @@ app.use('/api/v2', newRouter);
 - [Migration Guide](./docs/MIGRATION.md)
 - [API Reference](./docs/API.md)
 
-## 🤔 Why "Meebo"?
-
-Meebo = **M**issing **E**xpress **E**ndpoint **B**oilerplate **O**mitter
-
-(Or just because it sounds cool 😎)
-
 ## 📄 License
 
 ISC
@@ -209,4 +197,3 @@ ISC
 ## 🙏 Inspired By
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Python's type-safe API framework
-- [tRPC](https://trpc.io/) - End-to-end typesafe APIs
