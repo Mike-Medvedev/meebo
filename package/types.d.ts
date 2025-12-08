@@ -3,10 +3,28 @@ import "express";
 import { RequestHandler } from "express-serve-static-core";
 import { z } from "zod";
 
-interface RouteSchema<TRequest extends z.ZodType, TResponse extends z.ZodType> {
+interface RouteSchema<
+  TRequest extends z.ZodType = z.ZodAny,
+  TResponse extends z.ZodType = z.ZodAny,
+  TQuery extends z.ZodType = z.ZodAny,
+  TParams extends z.ZodType = z.ZodAny,
+  THeaders extends z.ZodType = z.ZodAny,
+> {
   request: TRequest;
   response: TResponse;
+  query?: TQuery;
+  params?: TParams;
+  headers?: THeaders;
 }
+
+// Helper type to ensure schema has both required fields
+type ValidRouteSchema = {
+  request: z.ZodType;
+  response: z.ZodType;
+  query?: z.ZodType;
+  params?: z.ZodType;
+  headers?: z.ZodType;
+};
 
 declare module "express-serve-static-core" {
   interface IRouterMatcher<
@@ -16,69 +34,71 @@ declare module "express-serve-static-core" {
     <
       Route extends string,
       P = RouteParameters<Route>,
-      TRequest extends z.ZodType,
-      TResponse extends z.ZodType,
+      TRequest extends z.ZodType = z.ZodAny,
+      TResponse extends z.ZodType = z.ZodAny,
+      TQuery extends z.ZodType = z.ZodAny,
+      TParams extends z.ZodType = z.ZodAny,
+      THeaders extends z.ZodType = z.ZodAny,
       ReqBody = z.infer<TRequest>,
       ResBody = z.infer<TResponse>,
       ReqQuery = ParsedQs,
       LocalsObj extends Record<string, any> = Record<string, any>,
     >(
-      // (it's used as the default type parameter for P)
       path: Route,
-      schema: RouteSchema<TRequest, TResponse>,
-      // (This generic is meant to be passed explicitly.)
+      schema: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
       ...handlers: Array<RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
     ): T;
+
+    <
+      Path extends string,
+      P = RouteParameters<Path>,
+      TRequest extends z.ZodType = z.ZodAny,
+      TResponse extends z.ZodType = z.ZodAny,
+      TQuery extends z.ZodType = z.ZodAny,
+      TParams extends z.ZodType = z.ZodAny,
+      THeaders extends z.ZodType = z.ZodAny,
+      ReqBody = z.infer<TRequest>,
+      ResBody = z.infer<TResponse>,
+      ReqQuery = ParsedQs,
+      LocalsObj extends Record<string, any> = Record<string, any>,
+    >(
+      path: Path,
+      schema: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
+      ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
+    ): T;
+
+    <
+      P = ParamsDictionary,
+      TRequest extends z.ZodType = z.ZodAny,
+      TResponse extends z.ZodType = z.ZodAny,
+      TQuery extends z.ZodType = z.ZodAny,
+      TParams extends z.ZodType = z.ZodAny,
+      THeaders extends z.ZodType = z.ZodAny,
+      ReqBody = z.infer<TRequest>,
+      ResBody = z.infer<TResponse>,
+      ReqQuery = ParsedQs,
+      LocalsObj extends Record<string, any> = Record<string, any>,
+    >(
+      path: PathParams,
+      schema: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
+      ...handlers: Array<RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
+    ): T;
+
+    <
+      P = ParamsDictionary,
+      TRequest extends z.ZodType = z.ZodAny,
+      TResponse extends z.ZodType = z.ZodAny,
+      TQuery extends z.ZodType = z.ZodAny,
+      TParams extends z.ZodType = z.ZodAny,
+      THeaders extends z.ZodType = z.ZodAny,
+      ReqBody = z.infer<TRequest>,
+      ResBody = z.infer<TResponse>,
+      ReqQuery = ParsedQs,
+      LocalsObj extends Record<string, any> = Record<string, any>,
+    >(
+      path: PathParams,
+      schema: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
+      ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
+    ): T;
   }
-}
-interface a {
-  <
-    Route extends string,
-    P = RouteParameters<Route>,
-    ResBody = any,
-    ReqBody = any,
-    ReqQuery = ParsedQs,
-    LocalsObj extends Record<string, any> = Record<string, any>,
-  >(
-    // (it's used as the default type parameter for P)
-    path: Route,
-    // (This generic is meant to be passed explicitly.)
-    ...handlers: Array<RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
-  ): T;
-  <
-    Path extends string,
-    P = RouteParameters<Path>,
-    ResBody = any,
-    ReqBody = any,
-    ReqQuery = ParsedQs,
-    LocalsObj extends Record<string, any> = Record<string, any>,
-  >(
-    // (it's used as the default type parameter for P)
-    path: Path,
-    // (This generic is meant to be passed explicitly.)
-    ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
-  ): T;
-  <
-    P = ParamsDictionary,
-    ResBody = any,
-    ReqBody = any,
-    ReqQuery = ParsedQs,
-    LocalsObj extends Record<string, any> = Record<string, any>,
-  >(
-    path: PathParams,
-    // (This generic is meant to be passed explicitly.)
-    ...handlers: Array<RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
-  ): T;
-  <
-    P = ParamsDictionary,
-    ResBody = any,
-    ReqBody = any,
-    ReqQuery = ParsedQs,
-    LocalsObj extends Record<string, any> = Record<string, any>,
-  >(
-    path: PathParams,
-    // (This generic is meant to be passed explicitly.)
-    ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
-  ): T;
-  (path: PathParams, subApplication: Application): T;
 }

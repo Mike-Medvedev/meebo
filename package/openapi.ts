@@ -26,25 +26,48 @@ class OpenApiService {
   registerPath(
     path: string,
     method: string,
-    schema: { request: z.ZodAny; response: z.ZodAny },
+    schema: {
+      request: z.ZodAny;
+      response: z.ZodAny;
+      query?: z.ZodAny;
+      params?: z.ZodAny;
+      headers?: z.ZodAny;
+    },
     tags: string[],
   ) {
     //TODO: add glo al types for all schemas
+    const requestConfig: any = {
+      body: {
+        description: "Request body",
+        content: {
+          "application/json": {
+            schema: schema.request,
+          },
+        },
+      },
+    };
+
+    // Add query params if provided
+    if (schema.query) {
+      requestConfig.query = schema.query;
+    }
+
+    // Add path params if provided
+    if (schema.params) {
+      requestConfig.params = schema.params;
+    }
+
+    // Add headers if provided
+    if (schema.headers) {
+      requestConfig.headers = schema.headers;
+    }
+
     this.registry.registerPath({
       method: method as "get" | "post" | "put" | "delete" | "patch",
       path: `${path}`,
       summary: `${method.toUpperCase()} ${path}`,
       tags: tags ? tags : [],
-      request: {
-        body: {
-          description: "Request body",
-          content: {
-            "application/json": {
-              schema: schema.request,
-            },
-          },
-        },
-      },
+      request: requestConfig,
       responses: {
         200: {
           description: "Success response",
