@@ -1,37 +1,51 @@
-import type {
-  Request,
-  Response,
-  NextFunction,
-  RequestHandler,
-  Router,
-  IRouterMatcher,
-  Application,
-} from "express";
+import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import type { ValidationErrorResponse } from "./shared.ts";
+import { generateUnionSuggestion } from "./errorHelpers.ts";
 
-//TODO: HANDLE STRICT MODE for requiring schema
-
-export function validateRequest(requestSchema: z.ZodAny) {
+export function validateRequest(requestSchema: z.ZodType) {
   return function (req: Request, res: Response, next: NextFunction) {
     const { data, error } = requestSchema.safeParse(req.body);
     if (error) {
-      return res.status(422).json({ detail: z.treeifyError(error) });
+      (res as any)._isValidationError = true;
+      const errorResponse: ValidationErrorResponse = {
+        error: "Request validation failed",
+        detail: z.treeifyError(error),
+      };
+      return res.status(422).json(errorResponse);
     }
     req.body = data;
     next();
   };
 }
 
-export function validateResponse(responseSchema: z.ZodAny) {
+export function validateResponse(responseSchema: z.ZodType) {
   return function (req: Request, res: Response, next: NextFunction) {
     const originalRes = res.json;
     res.json = function (payload) {
+      if ((this as any)._isValidationError) {
+        return originalRes.call(this, payload);
+      }
+
       const { data, error } = responseSchema.safeParse(payload);
       if (error) {
-        console.log(error);
-        return originalRes.call(res.status(422), {
+        const helpfulError = generateUnionSuggestion(
+          payload,
+          req.method,
+          req.path || req.url || "unknown",
+        );
+
+        console.error(helpfulError);
+        console.error("Validation errors:", error.message);
+
+        (this as any)._isValidationError = true;
+
+        const errorResponse: ValidationErrorResponse = {
+          error: "Response validation failed - API contract violation",
           detail: z.treeifyError(error),
-        });
+        };
+
+        return originalRes.call(res.status(500), errorResponse);
       }
       return originalRes.call(this, data);
     };
@@ -39,34 +53,49 @@ export function validateResponse(responseSchema: z.ZodAny) {
   };
 }
 
-export function validateHeaders(headersSchema: z.ZodAny) {
+export function validateHeaders(headersSchema: z.ZodType) {
   return function (req: Request, res: Response, next: NextFunction) {
     const { error } = headersSchema.safeParse(req.headers);
     if (error) {
-      return res.status(422).json({ detail: z.treeifyError(error) });
+      (res as any)._isValidationError = true;
+      const errorResponse: ValidationErrorResponse = {
+        error: "Headers validation failed",
+        detail: z.treeifyError(error),
+      };
+      return res.status(422).json(errorResponse);
     }
     next();
   };
 }
 
-export function validateQuery(querySchema: z.ZodAny) {
+export function validateQuery(querySchema: z.ZodType) {
   return function (req: Request, res: Response, next: NextFunction) {
-    const { data, error } = querySchema.safeParse(req.query);
+    const { error } = querySchema.safeParse(req.query);
     if (error) {
-      return res.status(422).json({ detail: z.treeifyError(error) });
+      (res as any)._isValidationError = true;
+      const errorResponse: ValidationErrorResponse = {
+        error: "Query parameters validation failed",
+        detail: z.treeifyError(error),
+      };
+      return res.status(422).json(errorResponse);
     }
-    req.query = data as typeof req.query;
+    // Note: In Express 5, req.query is read-only, so we just validate without transforming
     next();
   };
 }
 
-export function validateParams(paramsSchema: z.ZodAny) {
+export function validateParams(paramsSchema: z.ZodType) {
   return function (req: Request, res: Response, next: NextFunction) {
-    const { data, error } = paramsSchema.safeParse(req.params);
+    const { error } = paramsSchema.safeParse(req.params);
     if (error) {
-      return res.status(422).json({ detail: z.treeifyError(error) });
+      (res as any)._isValidationError = true;
+      const errorResponse: ValidationErrorResponse = {
+        error: "Path parameters validation failed",
+        detail: z.treeifyError(error),
+      };
+      return res.status(422).json(errorResponse);
     }
-    req.params = data as typeof req.params;
+    // Note: In Express 5, req.params is read-only, so we just validate without transforming
     next();
   };
 }

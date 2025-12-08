@@ -1,30 +1,15 @@
 import "express-serve-static-core";
 import "express";
-import { RequestHandler } from "express-serve-static-core";
-import { z } from "zod";
-
-interface RouteSchema<
-  TRequest extends z.ZodType = z.ZodAny,
-  TResponse extends z.ZodType = z.ZodAny,
-  TQuery extends z.ZodType = z.ZodAny,
-  TParams extends z.ZodType = z.ZodAny,
-  THeaders extends z.ZodType = z.ZodAny,
-> {
-  request: TRequest;
-  response: TResponse;
-  query?: TQuery;
-  params?: TParams;
-  headers?: THeaders;
-}
-
-// Helper type to ensure schema has both required fields
-type ValidRouteSchema = {
-  request: z.ZodType;
-  response: z.ZodType;
-  query?: z.ZodType;
-  params?: z.ZodType;
-  headers?: z.ZodType;
-};
+import type {
+  RequestHandler,
+  RequestHandlerParams,
+  RouteParameters,
+  PathParams,
+  ParamsDictionary,
+} from "express-serve-static-core";
+import type { ParsedQs } from "qs";
+import type { z } from "zod";
+import type { RouteSchema } from "./shared.ts";
 
 declare module "express-serve-static-core" {
   interface IRouterMatcher<

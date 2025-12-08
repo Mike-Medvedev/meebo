@@ -1,41 +1,38 @@
-import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import {
+  OpenApiGeneratorV3,
+  OpenAPIRegistry,
+  extendZodWithOpenApi,
+} from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import fs from "node:fs";
-import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import type { TagObject } from "openapi3-ts/oas30";
+import type { RouteSchema } from "./shared.ts";
+import packageJson from "../package.json" with { type: "json" };
 
 class OpenApiService {
   public readonly registry: OpenAPIRegistry;
+
   constructor() {
     this.registry = new OpenAPIRegistry();
     extendZodWithOpenApi(z);
   }
+
   generateOpenApiDocument(title?: string) {
     const generator = new OpenApiGeneratorV3(this.registry.definitions);
     const openAPIJson = generator.generateDocument({
       openapi: "3.0.0",
       info: {
         title: title || "My API",
-        version: "1.0.0",
+        version: packageJson.version || "1.0.0",
       },
     });
-    // fs.writeFileSync("./openapi.json", JSON.stringify(openAPIJson));
     return openAPIJson;
   }
+
   registerPath(
     path: string,
     method: string,
-    schema: {
-      request: z.ZodAny;
-      response: z.ZodAny;
-      query?: z.ZodAny;
-      params?: z.ZodAny;
-      headers?: z.ZodAny;
-    },
+    schema: RouteSchema<z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny>,
     tags: string[],
   ) {
-    //TODO: add glo al types for all schemas
     const requestConfig: any = {
       body: {
         description: "Request body",
@@ -66,7 +63,7 @@ class OpenApiService {
       method: method as "get" | "post" | "put" | "delete" | "patch",
       path: `${path}`,
       summary: `${method.toUpperCase()} ${path}`,
-      tags: tags ? tags : [],
+      tags: tags,
       request: requestConfig,
       responses: {
         200: {
@@ -81,5 +78,6 @@ class OpenApiService {
     });
   }
 }
+
 const openApiService = new OpenApiService();
 export default openApiService;

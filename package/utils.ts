@@ -1,5 +1,5 @@
 export function capitalizeFirst(str: string): string {
-  if (!str) {
+  if (!str || typeof str !== "string") {
     console.error("Error: capitalizeFirst input not a string");
     return str;
   }

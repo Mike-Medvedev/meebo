@@ -1,12 +1,4 @@
-import type {
-  Request,
-  Response,
-  NextFunction,
-  RequestHandler,
-  Router,
-  IRouterMatcher,
-  Application,
-} from "express";
+import type { RequestHandler, Router, IRouterMatcher } from "express";
 import { z } from "zod";
 import openApiService from "./openapi.ts";
 import {
@@ -17,37 +9,39 @@ import {
   validateResponse,
 } from "./runtimeValidators.ts";
 import { capitalizeFirst } from "./utils.ts";
+import type { RouteSchema, HttpMethod } from "./shared.ts";
 
-interface RouteSchema<
-  TRequest extends z.ZodType = z.ZodAny,
-  TResponse extends z.ZodType = z.ZodAny,
-  TQuery extends z.ZodType = z.ZodAny,
-  TParams extends z.ZodType = z.ZodAny,
-  THeaders extends z.ZodType = z.ZodAny,
-> {
-  request: TRequest;
-  response: TResponse;
-  query?: TQuery;
-  params?: TParams;
-  headers?: THeaders;
-}
+const HTTP_METHODS: readonly HttpMethod[] = [
+  "all",
+  "get",
+  "post",
+  "put",
+  "delete",
+  "patch",
+  "options",
+  "head",
+] as const;
+
+// Methods that typically have a request body
+const METHODS_WITH_BODY: readonly HttpMethod[] = ["post", "put", "patch", "delete", "all"] as const;
+
 /**
  * Creates a Typed Express router that adds a "schema" param to all router methods
- * @example const t = TypedRouter(); t.get("/", { request: ZodSchema, response: ZodSchema }, handlers)
- * @returns original express router
+ * @example const router = TypedRouter(express.Router());
+ * @example router.get("/users", { request: UserSchema, response: UsersSchema }, handler)
+ * @returns The original express router with typed methods
  */
 export function TypedRouter(router: Router) {
-  const methods = ["all", "get", "post", "put", "delete", "patch", "options", "head"] as const;
-  type Methods = (typeof methods)[number];
+  type Methods = (typeof HTTP_METHODS)[number];
   type MethodMap = Record<Methods, IRouterMatcher<Router>>;
   const builder = {} as Partial<MethodMap>;
   const originalRouter = router;
   const originalMethods = {} as Record<Methods, IRouterMatcher<Router>>;
-  methods.forEach((method) => {
+  HTTP_METHODS.forEach((method) => {
     originalMethods[method] = originalRouter[method].bind(originalRouter);
   });
 
-  methods.forEach((method) => {
+  HTTP_METHODS.forEach((method) => {
     builder[method] = function (path: any, ...args: any[]): any {
       if (schemaExists(args)) {
         const schema = args[0] as RouteSchema<z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny>;
@@ -68,7 +62,10 @@ export function TypedRouter(router: Router) {
         if (schema.headers) {
           middleware.push(validateHeaders(schema.headers));
         }
-        middleware.push(validateRequest(schema.request));
+        // Only validate request body for methods that have a body
+        if (schema.request && METHODS_WITH_BODY.includes(method)) {
+          middleware.push(validateRequest(schema.request));
+        }
         middleware.push(validateResponse(schema.response));
 
         return originalMethods[method](path, ...middleware, ...handlers);
@@ -82,8 +79,7 @@ export function TypedRouter(router: Router) {
 
   const typedMethods = builder as MethodMap;
 
-  //Step 2:
-  methods.forEach((method) => {
+  HTTP_METHODS.forEach((method) => {
     (originalRouter as any)[method] = typedMethods[method];
   });
 
@@ -95,7 +91,8 @@ function isValidZodSchema(value: any): boolean {
 }
 
 /**
- * checks if schema exists in express router method
+ * Checks if schema object exists and has valid response schema
+ * Request schema is optional (not needed for GET, HEAD, OPTIONS)
  */
 function schemaExists(args: any[]): boolean {
   if (
@@ -103,15 +100,17 @@ function schemaExists(args: any[]): boolean {
     typeof args[0] === "object" &&
     args[0] !== null &&
     !Array.isArray(args[0]) &&
-    "request" in args[0] &&
     "response" in args[0]
   ) {
     const schema = args[0];
 
-    if (!isValidZodSchema(schema.request)) {
+    // Response is always required
+    if (!isValidZodSchema(schema.response)) {
       return false;
     }
-    if (!isValidZodSchema(schema.response)) {
+
+    // Request is optional, but if provided must be valid
+    if ("request" in schema && !isValidZodSchema(schema.request)) {
       return false;
     }
 
@@ -121,6 +120,10 @@ function schemaExists(args: any[]): boolean {
   return false;
 }
 
+/**
+ * Helper to create typed handlers with schema inference
+ * @example export const getUsers = typedHandler({ request: UserSchema, response: UsersSchema }, handler)
+ */
 export function typedHandler<
   TRequest extends z.ZodType = z.ZodAny,
   TResponse extends z.ZodType = z.ZodAny,
@@ -133,15 +136,3 @@ export function typedHandler<
 ) {
   return handler;
 }
-
-/**
- * TODO:
- * 0.
- * 1. Add Runtime validation to passed in schema object middleware to ensure a schemai s even passed
- * 2.  Add shared types in this packaage
- * 3. Potentially make a config with strict mode (schemas are required for all routes in a router)
- * 4. Add All types of request data, (headers, params, etc)
- * 5. Overload all 5 types if IRouterMatches with our schema impl.
- * 6. Add Extensible ways to update OpenAPI Swagger Ui with zod-to-openapi api
- *
- */
