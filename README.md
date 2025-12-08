@@ -13,15 +13,18 @@ The missing API contract validation for Express JS (inspired by FastAPI)
 
 Express routes have **no type safety** and **no runtime validation**:
 
+```typescript
 // ❌ Regular Express Router
 const router = express.Router();
 
-router.post('/users', (req, res) => {
-// req.body is `any` - no type safety!
-// No validation - invalid data crashes your app
-const user = req.body; // Could be anything!
-res.json({ success: true });
+router.post("/users", (req, res) => {
+  // req.body is `any` - no type safety!
+  // No validation - invalid data crashes your app
+  const user = req.body; // Could be anything!
+  res.json({ success: true });
 });
+```
+
 **Problems:**
 
 - ❌ No TypeScript type checking
@@ -32,23 +35,28 @@ res.json({ success: true });
 ## ✨ The Solution
 
 Wrap your router once, get everything:
-script
+
+```typescript
 // ✅ Meebo Typed Router
-import { TypedRouter } from 'meebo';
+import { TypedRouter } from "meebo";
 
 const router = TypedRouter(express.Router());
 
-router.post('/users',
-{
-request: UserSchema, // Runtime + compile-time validation
-response: UserResponseSchema
-},
-(req, res) => {
-// req.body is fully typed! 🎉
-// Invalid requests are automatically rejected
-res.json({ users: [] }); // Response validated too!
-}
-);**Benefits:**
+router.post(
+  "/users",
+  {
+    request: UserSchema, // Runtime + compile-time validation
+    response: UserResponseSchema,
+  },
+  (req, res) => {
+    // req.body is fully typed! 🎉
+    // Invalid requests are automatically rejected
+    res.json({ users: [] }); // Response validated too!
+  },
+);
+```
+
+**Benefits:**
 
 - ✅ Full TypeScript type safety
 - ✅ Runtime validation with Zod
@@ -57,10 +65,14 @@ res.json({ users: [] }); // Response validated too!
 
 ## 🚀 Quick Start
 
-npm install meebo zod expressript
-import express from 'express';
-import { TypedRouter, swagger } from 'meebo';
-import { z } from 'zod';
+```bash
+npm install meebo zod express
+```
+
+```typescript
+import express from "express";
+import { TypedRouter, swagger } from "meebo";
+import { z } from "zod";
 
 const app = express();
 app.use(express.json());
@@ -70,33 +82,32 @@ const router = TypedRouter(express.Router());
 
 // Define schemas
 const UserSchema = z.object({
-name: z.string(),
-email: z.string().email(),
+  name: z.string(),
+  email: z.string().email(),
 });
 
 const UserResponseSchema = z.object({
-id: z.number(),
-name: z.string(),
-email: z.string(),
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
 });
 
 // Use typed routes
-router.post('/users',
-{ request: UserSchema, response: UserResponseSchema },
-(req, res) => {
-// req.body is typed as { name: string, email: string }
-const user = req.body; // ✅ TypeScript knows the type!
+router.post("/users", { request: UserSchema, response: UserResponseSchema }, (req, res) => {
+  // req.body is typed as { name: string, email: string }
+  const user = req.body; // ✅ TypeScript knows the type!
 
-    // Create user...
-    res.json({ id: 1, ...user }); // ✅ Response validated
+  // Create user...
+  res.json({ id: 1, ...user }); // ✅ Response validated
+});
 
-}
-);
-
-app.use('/api', router);
+app.use("/api", router);
 app.use(swagger()); // Auto-generated docs at /docs
 
-app.listen(3000);## 📸 Visual Comparison
+app.listen(3000);
+```
+
+## 📸 Visual Comparison
 
 ### Before (Regular Express)
 
@@ -123,28 +134,38 @@ app.listen(3000);## 📸 Visual Comparison
 
 ### Query Parameters & Path Params
 
-ypescript
-router.get('/users/:id',
-{
-params: z.object({ id: z.string() }),
-query: z.object({ page: z.number().optional() }),
-response: UserSchema,
-},
-(req, res) => {
-// req.params.id is typed!
-// req.query.page is typed!
-}
-);### Headers Validation
-ypescript
-router.post('/users',
-{
-headers: z.object({ 'x-api-key': z.string() }),
-request: UserSchema,
-response: UserResponseSchema,
-},
-handler
-);### Gradual Migration
-pescript
+```typescript
+router.get(
+  "/users/:id",
+  {
+    params: z.object({ id: z.string() }),
+    query: z.object({ page: z.number().optional() }),
+    response: UserSchema,
+  },
+  (req, res) => {
+    // req.params.id is typed!
+    // req.query.page is typed!
+  },
+);
+```
+
+### Headers Validation
+
+```typescript
+router.post(
+  "/users",
+  {
+    headers: z.object({ "x-api-key": z.string() }),
+    request: UserSchema,
+    response: UserResponseSchema,
+  },
+  handler,
+);
+```
+
+### Gradual Migration
+
+```typescript
 // Old router - untouched
 const oldRouter = express.Router();
 oldRouter.get('/legacy', legacyHandler);
@@ -155,7 +176,10 @@ newRouter.get('/users', { request: ..., response: ... }, handler);
 
 // Use both
 app.use('/api/v1', oldRouter);
-app.use('/api/v2', newRouter);## 🤝 Comparison
+app.use('/api/v2', newRouter);
+```
+
+## 🤝 Comparison
 
 | Feature            | Express   | Meebo             |
 | ------------------ | --------- | ----------------- |
