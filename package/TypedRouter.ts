@@ -90,9 +90,6 @@ export function TypedRouter(router: Router) {
   return originalRouter as Router;
 }
 
-/**
- * checks if a value is a valid Zod schema
- */
 function isValidZodSchema(value: any): boolean {
   return value instanceof z.ZodType;
 }
@@ -111,7 +108,6 @@ function schemaExists(args: any[]): boolean {
   ) {
     const schema = args[0];
 
-    // Both request and response are required, validate both
     if (!isValidZodSchema(schema.request)) {
       return false;
     }
