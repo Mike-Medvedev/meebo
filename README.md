@@ -1,4 +1,4 @@
-# Meebo - Type-Safe Express Router with Runtime Validation
+# Meebo
 
 > The missing API contract validation for Express.js
 
