@@ -1,22 +1,11 @@
 import "express-serve-static-core";
+import "express";
 import { RequestHandler } from "express-serve-static-core";
 import { z } from "zod";
 
 interface RouteSchema<TRequest extends z.ZodType, TResponse extends z.ZodType> {
   request: TRequest;
   response: TResponse;
-}
-
-function typedHandler<
-  TRequest extends z.ZodType,
-  TResponse extends z.ZodType,
-  ReqBody = z.infer<TRequest>,
-  ResBody = z.infer<TResponse>,
->(
-  schemas: RouteSchema<TRequest, TResponse>,
-  handler: RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>,
-) {
-  return handler;
 }
 
 declare module "express-serve-static-core" {
