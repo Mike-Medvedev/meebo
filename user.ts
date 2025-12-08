@@ -1,5 +1,5 @@
-import openApiService from "./openapi/openapi.service.ts";
-import { typedHandler } from "./package.ts";
+import openApiService from "./package/openapi.ts";
+import { typedHandler } from "./package/index.ts";
 import { z } from "zod";
 
 export const UserRequestSchema = z.object({
