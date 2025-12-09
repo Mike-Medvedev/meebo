@@ -33,16 +33,19 @@ class OpenApiService {
     schema: RouteSchema<z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny>,
     tags: string[],
   ) {
-    const requestConfig: any = {
-      body: {
+    const requestConfig: any = {};
+
+    // Only add body if request schema is provided
+    if (schema.request) {
+      requestConfig.body = {
         description: "Request body",
         content: {
           "application/json": {
             schema: schema.request,
           },
         },
-      },
-    };
+      };
+    }
 
     // Add query params if provided
     if (schema.query) {
@@ -64,7 +67,7 @@ class OpenApiService {
       path: `${path}`,
       summary: `${method.toUpperCase()} ${path}`,
       tags: tags,
-      request: requestConfig,
+      request: Object.keys(requestConfig).length > 0 ? requestConfig : undefined,
       responses: {
         200: {
           description: "Success response",

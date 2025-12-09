@@ -46,10 +46,9 @@ export function TypedRouter(router: Router) {
       if (schemaExists(args)) {
         const schema = args[0] as RouteSchema<z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny>;
         const handlers = args.slice(1);
-
-        openApiService.registerPath(path, method, schema, [
-          capitalizeFirst((path as string).slice(1)),
-        ]);
+        const pathStr = typeof path === "string" ? path : String(path);
+        const tag = capitalizeFirst(pathStr.replace(/^\//, "")) || "Default";
+        openApiService.registerPath(pathStr, method, schema, [tag]);
 
         const middleware: RequestHandler[] = [];
 
@@ -71,8 +70,7 @@ export function TypedRouter(router: Router) {
         return originalMethods[method](path, ...middleware, ...handlers);
       } else {
         console.error(`Error: Invalid or Missing Schema in route: ${method} ${path}`);
-        const handlers = args.slice(1);
-        return originalMethods[method](path, ...handlers);
+        return originalMethods[method](path, ...args);
       }
     };
   });

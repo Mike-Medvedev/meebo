@@ -7,6 +7,7 @@
 ```typescript
 router.post("/users", (req, res) => {
   const user = req.body; // any 😱
+  res.json({ user }); // returns any payload 😱
 });
 ```
 
@@ -24,8 +25,8 @@ const UserSchema = z.object({
 });
 
 router.post("/users", { request: UserSchema, response: UserSchema }, (req, res) => {
-  req.body; // typed + validated ✅
-  res.json({ name: "John", email: "john@example.com" }); // typed + validated ✅
+  req.body; // typed + validated using UserSchema ✅
+  res.json({ name: "John", email: "john@example.com" }); // typed + validated using UserSchema ✅
 });
 ```
 
@@ -55,12 +56,12 @@ router.get(
 
 ## OpenAPI / Swagger
 
-Add `swagger()` as the **last middleware** to serve docs at `/docs`:
+Add `swagger()` as the **last middleware** to serve swagger ui docs at `/docs`:
 
 ```typescript
 const app = express();
 app.use("/api", router);
-app.use(swagger("My API")); // title is optional
+app.use(swagger("My API"));
 ```
 
 ### Schema Metadata

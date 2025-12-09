@@ -1,7 +1,9 @@
 export function capitalizeFirst(str: string): string {
-  if (!str || typeof str !== "string") {
-    console.error("Error: capitalizeFirst input not a string");
+  if (typeof str !== "string") {
+    return "";
+  }
+  if (str.length === 0) {
     return str;
   }
-  return str.replace(str.charAt(0), str.charAt(0).toUpperCase());
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
