@@ -2,7 +2,7 @@
 
 ![meebo_logo](https://github.com/user-attachments/assets/1623ac58-e24a-4bd8-80ed-0d711c3f1787)
 
-**The missing type-safe API library for Express**
+**The missing API validation library for Express**
 
 [![npm version](https://img.shields.io/npm/v/meebo.svg)](https://www.npmjs.com/package/meebo)
 [![TypeScript](https://img.shields.io/badge/TypeScript-only-blue.svg)](https://www.typescriptlang.org/)
