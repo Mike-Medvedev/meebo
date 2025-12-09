@@ -14,9 +14,25 @@
 
 ---
 
+## Why Meebo?
+
+Express is the most popular Node.js framework, but it was built before TypeScript existed...
+
+**Existing solutions require too much:**
+- **tRPC**: Amazing, but requires you to abandon REST...
+- **ts-rest**: Powerful, but requires defining contracts separately...
+- **tsoa**: Generates code from decorators, heavy setup...
+
+**Meebo takes a different approach:**
+Keep your Express routes exactly as they are and simply add your schema
+
+---
+
 ## The Problem
 
 ```typescript
+const router = express.Router();
+
 router.post("/users", (req, res) => {
   const user = req.body; // req.body is type any and not validated at runtime
   res.json({ user }); // res.json returns anything and is not validated either
