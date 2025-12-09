@@ -79,7 +79,6 @@ export function validateQuery(querySchema: z.ZodType) {
       };
       return res.status(422).json(errorResponse);
     }
-    // Note: In Express 5, req.query is read-only, so we just validate without transforming
     next();
   };
 }
@@ -95,7 +94,6 @@ export function validateParams(paramsSchema: z.ZodType) {
       };
       return res.status(422).json(errorResponse);
     }
-    // Note: In Express 5, req.params is read-only, so we just validate without transforming
     next();
   };
 }

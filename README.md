@@ -1,4 +1,4 @@
-# Meebo
+# Meebo - The missing API contract library for express
 
 > Type-safe API contracts for Express.js
 
@@ -6,8 +6,8 @@
 
 ```typescript
 router.post("/users", (req, res) => {
-  const user = req.body; // any 😱
-  res.json({ user }); // returns any payload 😱
+  const user = req.body; // req.body is type any and not validated at runtime
+  res.json({ user }); // res.json returns anything and is not validated either
 });
 ```
 
@@ -80,16 +80,7 @@ const UserSchema = z
   });
 ```
 
-
-
-
 https://github.com/user-attachments/assets/d47bf5c3-a2b5-4ee8-885d-8c9d1db9fcd8
-
-
-
-
-
-
 
 ## License
 

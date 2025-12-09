@@ -35,7 +35,6 @@ class OpenApiService {
   ) {
     const requestConfig: any = {};
 
-    // Only add body if request schema is provided
     if (schema.request) {
       requestConfig.body = {
         description: "Request body",
@@ -47,23 +46,27 @@ class OpenApiService {
       };
     }
 
-    // Add query params if provided
     if (schema.query) {
       requestConfig.query = schema.query;
     }
 
-    // Add path params if provided
     if (schema.params) {
       requestConfig.params = schema.params;
     }
 
-    // Add headers if provided
     if (schema.headers) {
       requestConfig.headers = schema.headers;
     }
 
     this.registry.registerPath({
-      method: method as "get" | "post" | "put" | "delete" | "patch",
+      method: method as  | "get"
+      | "post"
+      | "put"
+      | "patch"
+      | "delete"
+      | "head"
+      | "options"
+      | "trace",
       path: `${path}`,
       summary: `${method.toUpperCase()} ${path}`,
       tags: tags,

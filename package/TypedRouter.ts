@@ -22,7 +22,6 @@ const HTTP_METHODS: readonly HttpMethod[] = [
   "head",
 ] as const;
 
-// Methods that typically have a request body
 const METHODS_WITH_BODY: readonly HttpMethod[] = ["post", "put", "patch", "delete", "all"] as const;
 
 /**
@@ -61,7 +60,6 @@ export function TypedRouter(router: Router) {
         if (schema.headers) {
           middleware.push(validateHeaders(schema.headers));
         }
-        // Only validate request body for methods that have a body
         if (schema.request && METHODS_WITH_BODY.includes(method)) {
           middleware.push(validateRequest(schema.request));
         }
@@ -102,12 +100,10 @@ function schemaExists(args: any[]): boolean {
   ) {
     const schema = args[0];
 
-    // Response is always required
     if (!isValidZodSchema(schema.response)) {
       return false;
     }
 
-    // Request is optional, but if provided must be valid
     if ("request" in schema && !isValidZodSchema(schema.request)) {
       return false;
     }
