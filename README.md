@@ -1,6 +1,18 @@
-# Meebo - The missing API contract library for express
+<div align="center">
 
-> Type-safe API contracts for Express.js
+![meebo_logo](https://github.com/user-attachments/assets/1623ac58-e24a-4bd8-80ed-0d711c3f1787)
+
+**The missing type-safe API library for Express**
+
+[![npm version](https://img.shields.io/npm/v/meebo.svg)](https://www.npmjs.com/package/meebo)
+[![TypeScript](https://img.shields.io/badge/TypeScript-only-blue.svg)](https://www.typescriptlang.org/)
+[![License: ISC](https://img.shields.io/badge/License-ISC-green.svg)](https://opensource.org/licenses/ISC)
+
+[Installation](#install) • [Usage](#usage) • [OpenAPI](#openapi--swagger)
+
+</div>
+
+---
 
 ## The Problem
 
@@ -30,11 +42,20 @@ router.post("/users", { request: UserSchema, response: UserSchema }, (req, res) 
 });
 ```
 
+**You now have an API where**
+- TypeScript knows the exact shape of `req.body`, `req.query`, `req.params`, and your response
+- Full autocomplete and intellisense on your requests, responses, queries, params, and headers
+- Zod validates everything at runtime, ensuring data matches and gives very helpful errors
+- Swagger UI and OpenAPI json generated from all your endpoints and schema
+
 ## Install
 
 ```bash
 npm install meebo zod express
+npm install -D typescript @types/express @types/node
 ```
+
+> **Requirements:** TypeScript, Express 5+, Zod 3 or 4
 
 ## Usage
 
