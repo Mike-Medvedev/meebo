@@ -126,7 +126,13 @@ export function typedHandler<
   THeaders extends z.ZodType = z.ZodAny,
 >(
   schemas: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
-  handler: RequestHandler<any, z.infer<TResponse>, z.infer<TRequest>, any, any>,
+  handler: RequestHandler<
+    z.infer<TParams>,
+    z.infer<TResponse>,
+    z.infer<TRequest>,
+    z.infer<TQuery>,
+    any
+  >,
 ) {
   return handler;
 }
