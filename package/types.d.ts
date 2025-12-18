@@ -7,7 +7,6 @@ import type {
   PathParams,
   ParamsDictionary,
 } from "express-serve-static-core";
-import type { ParsedQs } from "qs";
 import type { z } from "zod";
 import type { RouteSchema } from "./shared.ts";
 
@@ -26,7 +25,7 @@ declare module "express-serve-static-core" {
       THeaders extends z.ZodType = z.ZodAny,
       ReqBody = z.infer<TRequest>,
       ResBody = z.infer<TResponse>,
-      ReqQuery = ParsedQs,
+      ReqQuery = z.infer<TQuery>,
       LocalsObj extends Record<string, any> = Record<string, any>,
     >(
       path: Route,
@@ -44,7 +43,7 @@ declare module "express-serve-static-core" {
       THeaders extends z.ZodType = z.ZodAny,
       ReqBody = z.infer<TRequest>,
       ResBody = z.infer<TResponse>,
-      ReqQuery = ParsedQs,
+      ReqQuery = z.infer<TQuery>,
       LocalsObj extends Record<string, any> = Record<string, any>,
     >(
       path: Path,
@@ -61,7 +60,7 @@ declare module "express-serve-static-core" {
       THeaders extends z.ZodType = z.ZodAny,
       ReqBody = z.infer<TRequest>,
       ResBody = z.infer<TResponse>,
-      ReqQuery = ParsedQs,
+      ReqQuery = z.infer<TQuery>,
       LocalsObj extends Record<string, any> = Record<string, any>,
     >(
       path: PathParams,
@@ -78,7 +77,7 @@ declare module "express-serve-static-core" {
       THeaders extends z.ZodType = z.ZodAny,
       ReqBody = z.infer<TRequest>,
       ResBody = z.infer<TResponse>,
-      ReqQuery = ParsedQs,
+      ReqQuery = z.infer<TQuery>,
       LocalsObj extends Record<string, any> = Record<string, any>,
     >(
       path: PathParams,
