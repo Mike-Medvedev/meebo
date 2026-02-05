@@ -4,6 +4,9 @@ import type { z } from "zod";
  * Schema definition for typed routes
  * - request: Optional for GET, HEAD, OPTIONS (methods without body)
  * - response: Always required
+ * - tags: Optional array of tags for OpenAPI grouping
+ * - summary: Optional endpoint summary for documentation
+ * - description: Optional endpoint description for documentation
  */
 export interface RouteSchema<
   TRequest extends z.ZodType = z.ZodAny,
@@ -17,6 +20,22 @@ export interface RouteSchema<
   query?: TQuery;
   params?: TParams;
   headers?: THeaders;
+  /** Tags for OpenAPI grouping (overrides router-level tag) */
+  tags?: string[];
+  /** Endpoint summary for OpenAPI documentation */
+  summary?: string;
+  /** Endpoint description for OpenAPI documentation */
+  description?: string;
+}
+
+/**
+ * Options for TypedRouter configuration
+ */
+export interface TypedRouterOptions {
+  /** Default tag for all routes in this router */
+  tag?: string;
+  /** Base path prefix for OpenAPI documentation (e.g., "/api/v1") */
+  basePath?: string;
 }
 
 /**

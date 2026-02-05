@@ -9,7 +9,7 @@ import {
   validateResponse,
 } from "./runtimeValidators.ts";
 import { capitalizeFirst } from "./utils.ts";
-import type { RouteSchema, HttpMethod } from "./shared.ts";
+import type { RouteSchema, HttpMethod, TypedRouterOptions } from "./shared.ts";
 import type { TypedRouterInstance } from "./types.d.ts";
 
 const HTTP_METHODS: readonly HttpMethod[] = [
@@ -28,10 +28,14 @@ const METHODS_WITH_BODY: readonly HttpMethod[] = ["post", "put", "patch", "delet
 /**
  * Creates a Typed Express router that adds a "schema" param to all router methods
  * @example const router = TypedRouter(express.Router());
+ * @example const router = TypedRouter(express.Router(), { tag: "Users", basePath: "/users" });
  * @example router.get("/users", { request: UserSchema, response: UsersSchema }, handler)
  * @returns The original express router with typed methods
  */
-export function TypedRouter(router: Router) {
+export function TypedRouter(router: Router, options: TypedRouterOptions = {}) {
+  const defaultTag = options.tag;
+  const basePath = options.basePath || "";
+
   type Methods = (typeof HTTP_METHODS)[number];
   type MethodMap = Record<Methods, IRouterMatcher<Router>>;
   const builder = {} as Partial<MethodMap>;
@@ -47,8 +51,20 @@ export function TypedRouter(router: Router) {
         const schema = args[0] as RouteSchema<z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny, z.ZodAny>;
         const handlers = args.slice(1);
         const pathStr = typeof path === "string" ? path : String(path);
-        const tag = capitalizeFirst(pathStr.replace(/^\//, "")) || "Default";
-        openApiService.registerPath(pathStr, method, schema, [tag]);
+
+        // Tag resolution: schema.tags > options.tag > auto-generated from path
+        let tags: string[];
+        if (schema.tags && schema.tags.length > 0) {
+          tags = schema.tags;
+        } else if (defaultTag) {
+          tags = [defaultTag];
+        } else {
+          tags = [capitalizeFirst(pathStr.replace(/^\//, "")) || "Default"];
+        }
+
+        // Use basePath for OpenAPI documentation
+        const openApiPath = basePath + pathStr;
+        openApiService.registerPath(openApiPath, method, schema, tags);
 
         const middleware: RequestHandler[] = [];
 
