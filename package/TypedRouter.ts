@@ -10,6 +10,7 @@ import {
 } from "./runtimeValidators.ts";
 import { capitalizeFirst } from "./utils.ts";
 import type { RouteSchema, HttpMethod } from "./shared.ts";
+import type { TypedRouterInstance } from "./types.d.ts";
 
 const HTTP_METHODS: readonly HttpMethod[] = [
   "all",
@@ -79,7 +80,7 @@ export function TypedRouter(router: Router) {
     (originalRouter as any)[method] = typedMethods[method];
   });
 
-  return originalRouter as Router;
+  return originalRouter as unknown as TypedRouterInstance;
 }
 
 function isValidZodSchema(value: any): boolean {
