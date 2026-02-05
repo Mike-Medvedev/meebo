@@ -126,7 +126,7 @@ describe("TypedRouter", () => {
       const response = await request(app).post("/users").send({ name: "mike" });
 
       expect(response.status).toBe(500);
-      expect(response.body.error).toBe("Response validation failed - API contract violation");
+      expect(response.body.error).toBe("Response validation failed");
     });
   });
 
@@ -174,7 +174,7 @@ describe("TypedRouter", () => {
       const response = await request(app).get("/search?q=ab"); // Too short
 
       expect(response.status).toBe(422);
-      expect(response.body.error).toBe("Query parameters validation failed");
+      expect(response.body.error).toBe("Query validation failed");
     });
 
     it("rejects missing required query parameters", async () => {
@@ -196,7 +196,7 @@ describe("TypedRouter", () => {
       const response = await request(app).get("/search"); // Missing q param
 
       expect(response.status).toBe(422);
-      expect(response.body.error).toBe("Query parameters validation failed");
+      expect(response.body.error).toBe("Query validation failed");
     });
   });
 
@@ -324,7 +324,7 @@ describe("TypedRouter", () => {
       const response = await request(app).get("/users/abc"); // Invalid: not digits
 
       expect(response.status).toBe(422);
-      expect(response.body.error).toBe("Path parameters validation failed");
+      expect(response.body.error).toBe("Params validation failed");
     });
 
     it("validates UUID path parameters", async () => {
@@ -403,7 +403,7 @@ describe("TypedRouter", () => {
         .get("/users/abc/posts?limit=5")
         .set("x-api-key", "my-key");
       expect(badParamsResponse.status).toBe(422);
-      expect(badParamsResponse.body.error).toBe("Path parameters validation failed");
+      expect(badParamsResponse.body.error).toBe("Params validation failed");
     });
   });
 

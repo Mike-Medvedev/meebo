@@ -1,17 +1,20 @@
 import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import type { ValidationErrorResponse } from "./shared.ts";
 import { generateUnionSuggestion } from "./errorHelpers.ts";
+import { getErrorFormatter, shouldValidateResponse } from "./config.ts";
 
 export function validateRequest(requestSchema: z.ZodType) {
   return function (req: Request, res: Response, next: NextFunction) {
     const { data, error } = requestSchema.safeParse(req.body);
     if (error) {
       (res as any)._isValidationError = true;
-      const errorResponse: ValidationErrorResponse = {
-        error: "Request validation failed",
-        detail: z.treeifyError(error),
-      };
+      const formatter = getErrorFormatter();
+      const errorResponse = formatter({
+        type: "request",
+        method: req.method,
+        path: req.path || req.url || "unknown",
+        zodError: error,
+      });
       return res.status(422).json(errorResponse);
     }
     req.body = data;
@@ -33,6 +36,13 @@ export function validateResponse(
         return originalRes.call(this, payload);
       }
 
+      const statusCode = this.statusCode || 200;
+
+      // Skip validation for configured error status codes
+      if (!shouldValidateResponse(statusCode)) {
+        return originalRes.call(this, payload);
+      }
+
       // Pick schema based on status code
       let schema: z.ZodType | undefined;
       if (responseSchemas instanceof z.ZodType) {
@@ -40,7 +50,6 @@ export function validateResponse(
         schema = responseSchemas;
       } else {
         // Multiple schemas by status code
-        const statusCode = this.statusCode || 200;
         schema = responseSchemas[statusCode];
 
         // If no schema for this status code, skip validation
@@ -62,10 +71,13 @@ export function validateResponse(
 
         (this as any)._isValidationError = true;
 
-        const errorResponse: ValidationErrorResponse = {
-          error: "Response validation failed - API contract violation",
-          detail: z.treeifyError(error),
-        };
+        const formatter = getErrorFormatter();
+        const errorResponse = formatter({
+          type: "response",
+          method: req.method,
+          path: req.path || req.url || "unknown",
+          zodError: error,
+        });
 
         return originalRes.call(res.status(500), errorResponse);
       }
@@ -80,10 +92,13 @@ export function validateHeaders(headersSchema: z.ZodType) {
     const { error } = headersSchema.safeParse(req.headers);
     if (error) {
       (res as any)._isValidationError = true;
-      const errorResponse: ValidationErrorResponse = {
-        error: "Headers validation failed",
-        detail: z.treeifyError(error),
-      };
+      const formatter = getErrorFormatter();
+      const errorResponse = formatter({
+        type: "headers",
+        method: req.method,
+        path: req.path || req.url || "unknown",
+        zodError: error,
+      });
       return res.status(422).json(errorResponse);
     }
     next();
@@ -95,10 +110,13 @@ export function validateQuery(querySchema: z.ZodType) {
     const { error } = querySchema.safeParse(req.query);
     if (error) {
       (res as any)._isValidationError = true;
-      const errorResponse: ValidationErrorResponse = {
-        error: "Query parameters validation failed",
-        detail: z.treeifyError(error),
-      };
+      const formatter = getErrorFormatter();
+      const errorResponse = formatter({
+        type: "query",
+        method: req.method,
+        path: req.path || req.url || "unknown",
+        zodError: error,
+      });
       return res.status(422).json(errorResponse);
     }
     next();
@@ -110,10 +128,13 @@ export function validateParams(paramsSchema: z.ZodType) {
     const { error } = paramsSchema.safeParse(req.params);
     if (error) {
       (res as any)._isValidationError = true;
-      const errorResponse: ValidationErrorResponse = {
-        error: "Path parameters validation failed",
-        detail: z.treeifyError(error),
-      };
+      const formatter = getErrorFormatter();
+      const errorResponse = formatter({
+        type: "params",
+        method: req.method,
+        path: req.path || req.url || "unknown",
+        zodError: error,
+      });
       return res.status(422).json(errorResponse);
     }
     next();

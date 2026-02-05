@@ -112,7 +112,7 @@ describe("validateQuery", () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(422);
-    expect(res._data.error).toBe("Query parameters validation failed");
+    expect(res._data.error).toBe("Query validation failed");
   });
 });
 
@@ -143,7 +143,7 @@ describe("validateParams", () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(422);
-    expect(res._data.error).toBe("Path parameters validation failed");
+    expect(res._data.error).toBe("Params validation failed");
   });
 });
 
@@ -210,7 +210,7 @@ describe("validateResponse", () => {
     res.json({ id: "not-a-number", name: "mike" });
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res._data.error).toBe("Response validation failed - API contract violation");
+    expect(res._data.error).toBe("Response validation failed");
   });
 
   it("skips validation when _isValidationError is true", () => {

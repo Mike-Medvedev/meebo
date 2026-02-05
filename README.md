@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-only-blue.svg)](https://www.typescriptlang.org/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-green.svg)](https://opensource.org/licenses/ISC)
 
-[Installation](#install) • [Usage](#usage) • [OpenAPI](#openapi--swagger)
+[Installation](#install) • [Usage](#usage) • [OpenAPI](#openapi--swagger) • [Configuration](#configuration)
 
 </div>
 
@@ -101,6 +101,71 @@ app.use("/api", router);
 app.use(swagger("My API"));
 ```
 
+### Router Options
+
+Configure router-level defaults for OpenAPI documentation:
+
+```typescript
+const UserRouter = TypedRouter(express.Router(), {
+  tag: "Users",           // Default tag for all routes in this router
+  basePath: "/users",     // Prefix for OpenAPI paths (for documentation only)
+});
+
+// All routes automatically tagged as "Users" in Swagger
+UserRouter.get("/", { response: z.array(UserSchema) }, handler);
+UserRouter.get("/:id", { response: UserSchema }, handler);
+```
+
+### Schema Options
+
+Add OpenAPI metadata directly in your route schema:
+
+```typescript
+router.get(
+  "/:id",
+  {
+    params: z.object({ id: z.string() }),
+    response: UserSchema,
+    tags: ["Users", "Public"],     // Override router tag
+    summary: "Get user by ID",     // Endpoint summary
+    description: "Returns a single user by their unique identifier",
+  },
+  handler,
+);
+```
+
+### Multiple Response Codes
+
+Document different response schemas for different HTTP status codes:
+
+```typescript
+router.get(
+  "/:id",
+  {
+    params: z.object({ id: z.string() }),
+    responses: {
+      200: UserSchema,
+      404: z.object({ error: z.string() }),
+      500: z.object({ error: z.string(), requestId: z.string().optional() }),
+    },
+    summary: "Get user by ID",
+  },
+  handler,
+);
+```
+
+You can also use both `response` and `responses` together:
+
+```typescript
+{
+  response: UserSchema,  // Shorthand for 200
+  responses: {
+    404: NotFoundSchema,
+    500: ErrorSchema,
+  },
+}
+```
+
 ### Schema Metadata
 
 Use `.openapi()` on any Zod schema to add descriptions, examples, and more (powered by [zod-to-openapi](https://github.com/asteasolutions/zod-to-openapi)):
@@ -118,6 +183,57 @@ const UserSchema = z
 ```
 
 https://github.com/user-attachments/assets/d47bf5c3-a2b5-4ee8-885d-8c9d1db9fcd8
+
+## Configuration
+
+Configure meebo globally to customize error responses and validation behavior:
+
+```typescript
+import { configureMeebo } from "meebo";
+
+configureMeebo({
+  // Custom error response format
+  formatError: (context) => ({
+    success: false,
+    error: `${context.type} validation failed`,
+    details: context.zodError.issues.map((issue) => ({
+      field: issue.path.join("."),
+      message: issue.message,
+    })),
+  }),
+
+  // Skip response validation for these status codes (default shown)
+  skipResponseValidationForStatus: [400, 401, 403, 404, 409, 422, 500, 502, 503],
+
+  // Disable response validation entirely (not recommended)
+  validateResponses: true,
+});
+```
+
+### Error Context
+
+The `formatError` function receives a context object:
+
+```typescript
+interface MeeboErrorContext {
+  type: "request" | "response" | "params" | "query" | "headers";
+  method: string;   // HTTP method (GET, POST, etc.)
+  path: string;     // Request path
+  zodError: z.ZodError;  // The Zod validation error
+}
+```
+
+### Default Error Format
+
+Without configuration, errors are returned as:
+
+```json
+{
+  "error": "Request validation failed",
+  "type": "request",
+  "detail": [{ "path": ["email"], "message": "Invalid email" }]
+}
+```
 
 ## License
 
