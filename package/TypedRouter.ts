@@ -80,7 +80,13 @@ export function TypedRouter(router: Router, options: TypedRouterOptions = {}) {
         if (schema.request && METHODS_WITH_BODY.includes(method)) {
           middleware.push(validateRequest(schema.request));
         }
-        middleware.push(validateResponse(schema.response));
+
+        // Get the response schema for runtime validation
+        // Priority: schema.response > schema.responses[200]
+        const responseSchema = schema.response ?? schema.responses?.[200];
+        if (responseSchema) {
+          middleware.push(validateResponse(responseSchema));
+        }
 
         return originalMethods[method](path, ...middleware, ...handlers);
       } else {
@@ -105,6 +111,7 @@ function isValidZodSchema(value: any): boolean {
 
 /**
  * Checks if schema object exists and has valid response schema
+ * Accepts either `response` or `responses` field
  * Request schema is optional (not needed for GET, HEAD, OPTIONS)
  */
 function schemaExists(args: any[]): boolean {
@@ -113,14 +120,29 @@ function schemaExists(args: any[]): boolean {
     typeof args[0] === "object" &&
     args[0] !== null &&
     !Array.isArray(args[0]) &&
-    "response" in args[0]
+    ("response" in args[0] || "responses" in args[0])
   ) {
     const schema = args[0];
 
-    if (!isValidZodSchema(schema.response)) {
+    // Validate response field if present
+    if ("response" in schema && !isValidZodSchema(schema.response)) {
       return false;
     }
 
+    // Validate responses field if present (check that all values are valid Zod schemas)
+    if ("responses" in schema) {
+      const responses = schema.responses;
+      if (typeof responses !== "object" || responses === null) {
+        return false;
+      }
+      for (const zodSchema of Object.values(responses)) {
+        if (!isValidZodSchema(zodSchema)) {
+          return false;
+        }
+      }
+    }
+
+    // Validate request field if present
     if ("request" in schema && !isValidZodSchema(schema.request)) {
       return false;
     }

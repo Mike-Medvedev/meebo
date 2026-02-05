@@ -17,9 +17,9 @@ export interface RouteSchema<
   THeaders extends z.ZodType = z.ZodAny,
 > {
   request?: TRequest;
-  /** Success response schema (registered as 200 status code) */
-  response: TResponse;
-  /** Multiple response schemas keyed by HTTP status code (for OpenAPI docs) */
+  /** Success response schema (registered as 200 status code). Optional if using responses. */
+  response?: TResponse;
+  /** Multiple response schemas keyed by HTTP status code. Can be used instead of or with response. */
   responses?: Record<number, z.ZodType>;
   query?: TQuery;
   params?: TParams;
