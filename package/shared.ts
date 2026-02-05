@@ -3,7 +3,8 @@ import type { z } from "zod";
 /**
  * Schema definition for typed routes
  * - request: Optional for GET, HEAD, OPTIONS (methods without body)
- * - response: Always required
+ * - response: Success response schema (defaults to 200 status code)
+ * - responses: Multiple response schemas keyed by HTTP status code
  * - tags: Optional array of tags for OpenAPI grouping
  * - summary: Optional endpoint summary for documentation
  * - description: Optional endpoint description for documentation
@@ -16,7 +17,10 @@ export interface RouteSchema<
   THeaders extends z.ZodType = z.ZodAny,
 > {
   request?: TRequest;
+  /** Success response schema (registered as 200 status code) */
   response: TResponse;
+  /** Multiple response schemas keyed by HTTP status code (for OpenAPI docs) */
+  responses?: Record<number, z.ZodType>;
   query?: TQuery;
   params?: TParams;
   headers?: THeaders;
