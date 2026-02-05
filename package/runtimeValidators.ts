@@ -19,7 +19,13 @@ export function validateRequest(requestSchema: z.ZodType) {
   };
 }
 
-export function validateResponse(responseSchema: z.ZodType) {
+/**
+ * Validates response payload against schema(s)
+ * @param responseSchemas - Single schema or record of schemas by status code
+ */
+export function validateResponse(
+  responseSchemas: z.ZodType | Record<number, z.ZodType>,
+) {
   return function (req: Request, res: Response, next: NextFunction) {
     const originalRes = res.json;
     res.json = function (payload) {
@@ -27,7 +33,23 @@ export function validateResponse(responseSchema: z.ZodType) {
         return originalRes.call(this, payload);
       }
 
-      const { data, error } = responseSchema.safeParse(payload);
+      // Pick schema based on status code
+      let schema: z.ZodType | undefined;
+      if (responseSchemas instanceof z.ZodType) {
+        // Single schema (backward compatible)
+        schema = responseSchemas;
+      } else {
+        // Multiple schemas by status code
+        const statusCode = this.statusCode || 200;
+        schema = responseSchemas[statusCode];
+
+        // If no schema for this status code, skip validation
+        if (!schema) {
+          return originalRes.call(this, payload);
+        }
+      }
+
+      const { data, error } = schema.safeParse(payload);
       if (error) {
         const helpfulError = generateUnionSuggestion(
           payload,

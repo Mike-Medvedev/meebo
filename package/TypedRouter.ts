@@ -81,11 +81,17 @@ export function TypedRouter(router: Router, options: TypedRouterOptions = {}) {
           middleware.push(validateRequest(schema.request));
         }
 
-        // Get the response schema for runtime validation
-        // Priority: schema.response > schema.responses[200]
-        const responseSchema = schema.response ?? schema.responses?.[200];
-        if (responseSchema) {
-          middleware.push(validateResponse(responseSchema));
+        // Build response schemas for runtime validation
+        // Merge response (as 200) with responses, responses takes priority
+        const responseSchemas: Record<number, z.ZodType> = {};
+        if (schema.response) {
+          responseSchemas[200] = schema.response;
+        }
+        if (schema.responses) {
+          Object.assign(responseSchemas, schema.responses);
+        }
+        if (Object.keys(responseSchemas).length > 0) {
+          middleware.push(validateResponse(responseSchemas));
         }
 
         return originalMethods[method](path, ...middleware, ...handlers);
