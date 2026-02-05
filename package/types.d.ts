@@ -1,10 +1,5 @@
 import type { Router } from "express";
-import type {
-  RequestHandler,
-  RouteParameters,
-  PathParams,
-  ParamsDictionary,
-} from "express-serve-static-core";
+import type { RequestHandler, PathParams } from "express-serve-static-core";
 import type { z } from "zod";
 import type { RouteSchema } from "./shared.ts";
 
@@ -15,7 +10,6 @@ import type { RouteSchema } from "./shared.ts";
 export interface TypedRouterMatcher<T> {
   <
     Route extends string,
-    P = RouteParameters<Route>,
     TRequest extends z.ZodType = z.ZodAny,
     TResponse extends z.ZodType = z.ZodAny,
     TQuery extends z.ZodType = z.ZodAny,
@@ -24,15 +18,15 @@ export interface TypedRouterMatcher<T> {
     ReqBody = z.infer<TRequest>,
     ResBody = z.infer<TResponse>,
     ReqQuery = z.infer<TQuery>,
+    ReqParams = z.infer<TParams>,
     LocalsObj extends Record<string, any> = Record<string, any>,
   >(
     path: Route,
     schema: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
-    ...handlers: Array<RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
+    ...handlers: Array<RequestHandler<ReqParams, ResBody, ReqBody, ReqQuery, LocalsObj>>
   ): T;
 
   <
-    P = ParamsDictionary,
     TRequest extends z.ZodType = z.ZodAny,
     TResponse extends z.ZodType = z.ZodAny,
     TQuery extends z.ZodType = z.ZodAny,
@@ -41,11 +35,12 @@ export interface TypedRouterMatcher<T> {
     ReqBody = z.infer<TRequest>,
     ResBody = z.infer<TResponse>,
     ReqQuery = z.infer<TQuery>,
+    ReqParams = z.infer<TParams>,
     LocalsObj extends Record<string, any> = Record<string, any>,
   >(
     path: PathParams,
     schema: RouteSchema<TRequest, TResponse, TQuery, TParams, THeaders>,
-    ...handlers: Array<RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
+    ...handlers: Array<RequestHandler<ReqParams, ResBody, ReqBody, ReqQuery, LocalsObj>>
   ): T;
 }
 
