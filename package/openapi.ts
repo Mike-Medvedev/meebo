@@ -27,6 +27,17 @@ function getDescriptionForCode(code: number): string {
   return STATUS_CODE_DESCRIPTIONS[code] || "Response";
 }
 
+/** Options for Bearer auth in Swagger UI (enables the Authorize button). */
+export interface SwaggerBearerAuthOptions {
+  bearerFormat?: string;
+}
+
+/** Options for OpenAPI doc generation (bearer auth, etc.). */
+export interface SwaggerDocOptions {
+  /** Enable Bearer token auth in Swagger UI: adds security scheme and shows the Authorize button. */
+  bearerAuth?: boolean | SwaggerBearerAuthOptions;
+}
+
 class OpenApiService {
   public readonly registry: OpenAPIRegistry;
 
@@ -35,7 +46,7 @@ class OpenApiService {
     extendZodWithOpenApi(z);
   }
 
-  generateOpenApiDocument(title?: string) {
+  generateOpenApiDocument(title?: string, docOptions?: SwaggerDocOptions) {
     const generator = new OpenApiGeneratorV3(this.registry.definitions);
     const openAPIJson = generator.generateDocument({
       openapi: "3.0.0",
@@ -43,7 +54,30 @@ class OpenApiService {
         title: title || "My API",
         version: packageJson.version || "1.0.0",
       },
-    });
+    }) as unknown as Record<string, unknown>;
+
+    if (docOptions?.bearerAuth) {
+      const bearerFormat =
+        typeof docOptions.bearerAuth === "object" && docOptions.bearerAuth.bearerFormat != null
+          ? docOptions.bearerAuth.bearerFormat
+          : "JWT";
+      const components = (openAPIJson.components as Record<string, unknown> | undefined) ?? {};
+      const existingSchemes = (components.securitySchemes as Record<string, unknown>) ?? {};
+      openAPIJson.components = {
+        ...components,
+        securitySchemes: {
+          ...existingSchemes,
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat,
+            description: "Enter your Bearer token to authorize requests",
+          },
+        },
+      };
+      openAPIJson.security = [{ bearerAuth: [] as string[] }];
+    }
+
     return openAPIJson;
   }
 

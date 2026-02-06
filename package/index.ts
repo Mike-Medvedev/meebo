@@ -12,6 +12,7 @@ export type { TypedRouterInstance, TypedRouterMatcher } from "./types.d.ts";
 export type { MeeboConfig, MeeboErrorContext, ErrorFormatter } from "./config.ts";
 
 export { default as openApiService } from "./openapi.ts";
+export type { SwaggerDocOptions, SwaggerBearerAuthOptions } from "./openapi.ts";
 export { configureMeebo, resetConfig } from "./config.ts";
 
 export {

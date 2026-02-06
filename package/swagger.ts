@@ -1,22 +1,23 @@
 import type { Request, Response, NextFunction } from "express";
 import swaggerUi, { type SwaggerUiOptions } from "swagger-ui-express";
 import openApiService from "./openapi.ts";
+import type { SwaggerDocOptions } from "./openapi.ts";
 
-export interface SwaggerOptions {
-  /** Default to light theme (Swagger UI 5.31+). Just removes the dark-mode class on <html> so the built-in light CSS is used. */
+export interface SwaggerOptions extends SwaggerDocOptions {
+  /** Default to light theme (Swagger UI 5.31+). Removes the dark-mode class on <html> so the built-in light CSS is used. */
   theme?: "light" | "dark" | "auto";
 }
 
 /**
  * Exposes Swagger UI at /docs containing all your paths and registered schemas.
- * Pass `{ theme: "light" }` to default to light theme (no custom CSS; uses Swagger UI’s built-in styles).
+ * Options: `{ bearerAuth: true }` for the Authorize button; `{ theme: "light" }` for default light theme.
  */
 export function swagger(title?: string, options?: SwaggerOptions) {
   return (req: Request, res: Response, next: NextFunction) => {
     const app = req.app;
     if (!(app as any)._swaggerSetup) {
       app.get("/docs/openapi.json", (req, res) => {
-        const openapiDoc = openApiService.generateOpenApiDocument(title);
+        const openapiDoc = openApiService.generateOpenApiDocument(title, options);
         res.json(openapiDoc);
       });
 
