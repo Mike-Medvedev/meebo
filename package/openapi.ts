@@ -109,15 +109,7 @@ class OpenApiService {
     }
 
     this.registry.registerPath({
-      method: method as
-        | "get"
-        | "post"
-        | "put"
-        | "patch"
-        | "delete"
-        | "head"
-        | "options"
-        | "trace",
+      method: method as "get" | "post" | "put" | "patch" | "delete" | "head" | "options" | "trace",
       path: `${path}`,
       summary: schema.summary || `${method.toUpperCase()} ${path}`,
       ...(schema.description && { description: schema.description }),

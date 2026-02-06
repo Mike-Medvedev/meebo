@@ -19,6 +19,7 @@
 Express is the most popular Node.js framework, but it was built before TypeScript existed...
 
 **Existing solutions require too much:**
+
 - **tRPC**: Amazing, but requires you to abandon REST...
 - **ts-rest**: Powerful, but requires defining contracts separately...
 - **tsoa**: Generates code from decorators, heavy setup...
@@ -59,6 +60,7 @@ router.post("/users", { request: UserSchema, response: UserSchema }, (req, res) 
 ```
 
 **You now have an API where**
+
 - TypeScript knows the exact shape of `req.body`, `req.query`, `req.params`, and your response
 - Full autocomplete and intellisense on your requests, responses, queries, params, and headers
 - Zod validates everything at runtime, ensuring data matches and gives very helpful errors
@@ -101,14 +103,22 @@ app.use("/api", router);
 app.use(swagger("My API"));
 ```
 
+### Authorize button (Bearer token)
+
+To show an "Authorize"so you can enter a Bearer token and test protected routes from the docs, pass `{ bearerAuth: true }` as the second argument:
+
+```typescript
+app.use(swagger("My API", { bearerAuth: true }));
+```
+
 ### Router Options
 
 Configure router-level defaults for OpenAPI documentation:
 
 ```typescript
 const UserRouter = TypedRouter(express.Router(), {
-  tag: "Users",           // Default tag for all routes in this router
-  basePath: "/users",     // Prefix for OpenAPI paths (for documentation only)
+  tag: "Users", // Default tag for all routes in this router
+  basePath: "/users", // Prefix for OpenAPI paths (for documentation only)
 });
 
 // All routes automatically tagged as "Users" in Swagger
@@ -126,8 +136,8 @@ router.get(
   {
     params: z.object({ id: z.string() }),
     response: UserSchema,
-    tags: ["Users", "Public"],     // Override router tag
-    summary: "Get user by ID",     // Endpoint summary
+    tags: ["Users", "Public"], // Override router tag
+    summary: "Get user by ID", // Endpoint summary
     description: "Returns a single user by their unique identifier",
   },
   handler,
@@ -217,9 +227,9 @@ The `formatError` function receives a context object:
 ```typescript
 interface MeeboErrorContext {
   type: "request" | "response" | "params" | "query" | "headers";
-  method: string;   // HTTP method (GET, POST, etc.)
-  path: string;     // Request path
-  zodError: z.ZodError;  // The Zod validation error
+  method: string; // HTTP method (GET, POST, etc.)
+  path: string; // Request path
+  zodError: z.ZodError; // The Zod validation error
 }
 ```
 
