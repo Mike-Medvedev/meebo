@@ -7,7 +7,7 @@ export interface SwaggerOptions extends SwaggerDocOptions {}
 
 /**
  * Exposes Swagger UI at /docs containing all your paths and registered schemas.
- * Options: `{ bearerAuth: true }` for the Authorize button.
+ * Options: `{ bearerAuth: true }` for the Authorize button; `{ version: "1.2.0" }` for your API version.
  */
 export function swagger(title?: string, options?: SwaggerOptions) {
   return (req: Request, res: Response, next: NextFunction) => {

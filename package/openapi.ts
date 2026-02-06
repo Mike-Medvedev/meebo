@@ -5,7 +5,6 @@ import {
 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 import type { RouteSchema } from "./shared.ts";
-import packageJson from "../package.json" with { type: "json" };
 
 /**
  * Default descriptions for common HTTP status codes
@@ -32,8 +31,10 @@ export interface SwaggerBearerAuthOptions {
   bearerFormat?: string;
 }
 
-/** Options for OpenAPI doc generation (bearer auth, etc.). */
+/** Options for OpenAPI doc generation (bearer auth, API version, etc.). */
 export interface SwaggerDocOptions {
+  /** API version shown in Swagger docs (e.g. "1.2.0"). Defaults to "1.0.0". */
+  version?: string;
   /** Enable Bearer token auth in Swagger UI: adds security scheme and shows the Authorize button. */
   bearerAuth?: boolean | SwaggerBearerAuthOptions;
 }
@@ -52,7 +53,7 @@ class OpenApiService {
       openapi: "3.0.0",
       info: {
         title: title || "My API",
-        version: packageJson.version || "1.0.0",
+        version: docOptions?.version ?? "1.0.0",
       },
     }) as unknown as Record<string, unknown>;
 
