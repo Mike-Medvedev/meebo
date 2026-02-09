@@ -66,6 +66,10 @@ export function TypedRouter(router: Router, options: TypedRouterOptions = {}) {
         const openApiPath = basePath + pathStr;
         openApiService.registerPath(openApiPath, method, schema, tags);
 
+        if (schema.skipValidation) {
+          return originalMethods[method](path, ...handlers);
+        }
+
         const middleware: RequestHandler[] = [];
 
         if (schema.params) {
@@ -117,46 +121,54 @@ function isValidZodSchema(value: any): boolean {
 
 /**
  * Checks if schema object exists and has valid response schema
- * Accepts either `response` or `responses` field
+ * Accepts either `response` or `responses` field.
+ * For skipValidation only summary/description required.
  * Request schema is optional (not needed for GET, HEAD, OPTIONS)
  */
 function schemaExists(args: any[]): boolean {
   if (
-    args.length > 0 &&
-    typeof args[0] === "object" &&
-    args[0] !== null &&
-    !Array.isArray(args[0]) &&
-    ("response" in args[0] || "responses" in args[0])
+    args.length === 0 ||
+    typeof args[0] !== "object" ||
+    args[0] === null ||
+    Array.isArray(args[0])
   ) {
-    const schema = args[0];
+    return false;
+  }
+  const schema = args[0];
 
-    // Validate response field if present
-    if ("response" in schema && !isValidZodSchema(schema.response)) {
-      return false;
-    }
-
-    // Validate responses field if present (check that all values are valid Zod schemas)
-    if ("responses" in schema) {
-      const responses = schema.responses;
-      if (typeof responses !== "object" || responses === null) {
-        return false;
-      }
-      for (const zodSchema of Object.values(responses)) {
-        if (!isValidZodSchema(zodSchema)) {
-          return false;
-        }
-      }
-    }
-
-    // Validate request field if present
-    if ("request" in schema && !isValidZodSchema(schema.request)) {
-      return false;
-    }
-
+  // Doc-only / skipValidation: no response required
+  if (schema.skipValidation === true) {
     return true;
   }
 
-  return false;
+  if (!("response" in schema) && !("responses" in schema)) {
+    return false;
+  }
+
+  // Validate response field if present
+  if ("response" in schema && !isValidZodSchema(schema.response)) {
+    return false;
+  }
+
+  // Validate responses field if present (check that all values are valid Zod schemas)
+  if ("responses" in schema) {
+    const responses = schema.responses;
+    if (typeof responses !== "object" || responses === null) {
+      return false;
+    }
+    for (const zodSchema of Object.values(responses)) {
+      if (!isValidZodSchema(zodSchema)) {
+        return false;
+      }
+    }
+  }
+
+  // Validate request field if present
+  if ("request" in schema && !isValidZodSchema(schema.request)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**

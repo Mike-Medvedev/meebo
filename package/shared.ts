@@ -30,6 +30,8 @@ export interface RouteSchema<
   summary?: string;
   /** Endpoint description for OpenAPI documentation */
   description?: string;
+  /** Skip request/response validation (e.g. raw body webhooks). Route is still documented in OpenAPI. */
+  skipValidation?: boolean;
 }
 
 /**

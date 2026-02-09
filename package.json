@@ -1,6 +1,6 @@
 {
   "name": "meebo",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "the missing api contract validation for express js",
   "license": "ISC",
   "author": "Michael Medvedev",
