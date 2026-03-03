@@ -30,6 +30,8 @@ export interface RouteSchema<
   summary?: string;
   /** Endpoint description for OpenAPI documentation */
   description?: string;
+  /** OpenAPI operationId (e.g. for client codegen). Optional. */
+  operationId?: string;
   /** Skip request/response validation (e.g. raw body webhooks). Route is still documented in OpenAPI. */
   skipValidation?: boolean;
 }

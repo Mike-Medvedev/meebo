@@ -148,6 +148,7 @@ class OpenApiService {
       path: `${path}`,
       summary: schema.summary || `${method.toUpperCase()} ${path}`,
       ...(schema.description && { description: schema.description }),
+      ...(schema.operationId && { operationId: schema.operationId }),
       tags: tags,
       request: Object.keys(requestConfig).length > 0 ? requestConfig : undefined,
       responses,
