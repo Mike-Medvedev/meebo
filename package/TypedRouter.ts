@@ -62,8 +62,8 @@ export function TypedRouter(router: Router, options: TypedRouterOptions = {}) {
           tags = [capitalizeFirst(pathStr.replace(/^\//, "")) || "Default"];
         }
 
-        // Use basePath for OpenAPI documentation
-        const openApiPath = basePath + pathStr;
+        // Use basePath for OpenAPI documentation (Express :id → OpenAPI {id})
+        const openApiPath = (basePath + pathStr).replace(/:(\w+)/g, "{$1}");
         openApiService.registerPath(openApiPath, method, schema, tags);
 
         if (schema.skipValidation) {
